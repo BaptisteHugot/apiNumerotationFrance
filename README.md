@@ -1,10 +1,10 @@
 # apiNumerotationFrance
-Cette API permet d'effectuer des recherches sur les ressources en numérotation attribuées par l'Arcep. Les données sont tirées des fichiers MAJNUM, MAJSDT, MAJPORTA et MAJOPE mis à disposition par l'[Arcep]() en open data.
+Cette API permet d'effectuer des recherches sur les ressources en numérotation attribuées par l'Arcep. Les données sont tirées des fichiers MAJNUM, MAJSDT, MAJPORTA et MAJOPE mis à disposition par l'[Arcep](https://www.data.gouv.fr/fr/datasets/ressources-en-numerotation-telephonique/) en open data.
 
 ## Utilisation
 L'API permet d'effectuer une recherche selon les critères suivants pour les ressources attribuées :
 * A un opérateur spécifique, à l'aide du mot-clé OPERATEUR suivi d'un code alphanumérique sur 4 ou 5 caractères
-* Pour une tranche de numéro (EZABPQM), à l'aide du mot-clé TRANCHE suivi d'un nombre allant de 2 à 6 caractères
+* Pour une tranche de numéro (EZABPQM), à l'aide du mot-clé TRANCHE suivi d'un nombre allant de 2 à 7 caractères
 * Selon le fichier d'origine, à l'aide du mot-clé FICHIER suivi d'un texte compris entre MAJNUM, MAJSDT et MAJPORTA
 * Avant une date donnée, à l'aide du mot-clé DATEINF suivi d'un nombre sur 8 caractères au format DDMMAAAA
 * Après une date donnée, à l'aide du mot-clé DATESUP suivi d'un nombre sur 8 caractères au format DDMMAAAA
@@ -13,12 +13,8 @@ L'API retourne null dans les cas où aucun élément n'est trouvé ou si les don
 
 Le projet contient également un fichier permettant d'automatiser le processus de récupération des fichiers et d'inclusion dans une base de données pour maintenir à jour les données de l'API.
 
-## Exemple
-Un exemple complet est disponible sur [ma page personnelle](https://www.baptistehugot.cf/arretRTC/). La base de données contenue dans cet exemple ne contient pas toutes les données de l'Arcep et ne doit donc pas être utilisée telle quelle en production par quiconque !
-
 ## Ecrit avec
-* [PHP]() - Le langage de programmation utilisé pour l'API et la page d'exemple
-* [Javascript](https://www.ecma-international.org/publications/standards/Ecma-262.htm) - Le langage de programmation utilisé pour la gestion des éléments entrés pour la page d'exemple
+* [PHP](https://secure.php.net/) - Le langage de programmation utilisé pour l'API et la page d'exemple
 * [HTML](https://www.w3.org/html/) - Le langage de programmation utilisé pour afficher la page Internet
 * [CSS](https://www.w3.org/Style/CSS/) - Le langage de programmation utilisé pour gérer les styles de la page Internet
 
@@ -26,7 +22,7 @@ Un exemple complet est disponible sur [ma page personnelle](https://www.baptiste
 * [PHPSpreadsheet]() - La bibliothèque utilisée pour convertir les fichiers du format .xls au format .csv
 
 ## Versions
-[SemVer](http://semver.org/) est utilisé pour la gestion de versions. Pour connaître les versions disponibles, veuillez vous référer aux [étiquettes disponibles dans ce dépôt](https://github.com/BaptisteHugot/arretRTC/releases/).
+[SemVer](http://semver.org/) est utilisé pour la gestion de versions. Pour connaître les versions disponibles, veuillez vous référer aux [étiquettes disponibles dans ce dépôt](https://github.com/BaptisteHugot/apiNumerotationFrance/releases/).
 
 ## Auteurs
 * **Baptiste Hugot** - *Travail initial* - [BaptisteHugot](https://github.com/BaptisteHugot)
