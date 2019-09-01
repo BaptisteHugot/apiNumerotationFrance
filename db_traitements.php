@@ -12,59 +12,46 @@ include ('db.php');
 
 // On définit l'ensemble des variables
 // Les URL de téléchargement des fichiers en open data
-$fileUrl_MAJOPE = "https://www.data.gouv.fr/fr/datasets/r/19630568-4b05-4192-a989-9040a4383520";
-$fileUrl_MAJPORTA = "https://www.data.gouv.fr/fr/datasets/r/e22d0c7f-24a9-4dae-81c3-56932889025f";
-$fileUrl_MAJNUM = "https://www.data.gouv.fr/fr/datasets/r/90e8bdd0-0f5c-47ac-bd39-5f46463eb806";
-$fileUrl_MAJSDT = "https://www.data.gouv.fr/fr/datasets/r/e516ccc4-70a8-46b6-b31f-6004e042f196";
+$urlArray = array(); // On crée un tableau vide où l'on stocke chaque URL contenant un fichier à télécharger
+$urlArray["MAJOPE"] = "https://www.data.gouv.fr/fr/datasets/r/19630568-4b05-4192-a989-9040a4383520";
+$urlArray["MAJPORTA"] = "https://www.data.gouv.fr/fr/datasets/r/e22d0c7f-24a9-4dae-81c3-56932889025f";
+$urlArray["MAJNUM"] = "https://www.data.gouv.fr/fr/datasets/r/90e8bdd0-0f5c-47ac-bd39-5f46463eb806";
+$urlArray["MAJSDT"] = "https://www.data.gouv.fr/fr/datasets/r/e516ccc4-70a8-46b6-b31f-6004e042f196";
 
-// Les chemins relatifs vers lesquels seront stockés les fichiers au format.xls
-$saveTo_XLS_MAJOPE = "./temp/MAJOPE.xls";
-$saveTo_XLS_MAJPORTA = "./temp/MAJPORTA.xls";
-$saveTo_XLS_MAJNUM = "./temp/MAJNUM.xls";
-$saveTo_XLS_MAJSDT = "./temp/MAJSDT.xls";
+$tempSaveFolder = "./temp/"; // Dossier où seront mis les fichiers temporaires
+$fileSQL = "./db_traitements.sql"; // Le chemin relatif où se situe le script sql à exécuter
 
-// Les chemins relatifs vers lesquels seront stockés les fichiers au format .csv
-$saveTo_CSV_MAJOPE = "./temp/MAJOPE.csv";
-$saveTo_CSV_MAJPORTA = "./temp/MAJPORTA.csv";
-$saveTo_CSV_MAJNUM = "./temp/MAJNUM.csv";
-$saveTo_CSV_MAJSDT = "./temp/MAJSDT.csv";
-
-// Les noms des fichiers
-$name_MAJPORTA = "MAJPORTA";
-$name_MAJOPE = "MAJOPE";
-$name_MAJNUM = "MAJNUM";
-$name_MAJSDT = "MAJSDT";
-
-// Le chemin relatif où se situe 
-$fileSQL = "./db_traitements.sql";
+// On crée le dossier /temp/ si celui-ci n'existe pas déjà
+if(!file_exists($tempSaveFolder)){
+	mkdir($tempSaveFolder, 0777, true);
+}
 
 // On télécharge l'ensemble des fichiers au format .xls disponibles en open data
-downloadFile($fileUrl_MAJOPE, $saveTo_XLS_MAJOPE, $name_MAJOPE);
-downloadFile($fileUrl_MAJPORTA, $saveTo_XLS_MAJPORTA, $name_MAJPORTA);
-downloadFile($fileUrl_MAJNUM, $saveTo_XLS_MAJNUM, $name_MAJNUM);
-downloadFile($fileUrl_MAJSDT, $saveTo_XLS_MAJSDT, $name_MAJSDT);
+foreach($urlArray as $key=>$value){
+	downloadFile($value, $tempSaveFolder . $key . ".xls", $key);
+}
 
 // On convertit l'ensemble des fichiers du format .xls au format .csv
-convertXLSToCSV($saveTo_XLS_MAJOPE, $saveTo_CSV_MAJOPE, $name_MAJOPE);
-convertXLSToCSV($saveTo_XLS_MAJPORTA, $saveTo_CSV_MAJPORTA, $name_MAJPORTA);
-convertXLSToCSV($saveTo_XLS_MAJNUM, $saveTo_CSV_MAJNUM, $name_MAJNUM);
-convertXLSToCSV($saveTo_XLS_MAJSDT, $saveTo_CSV_MAJSDT, $name_MAJSDT);
+$filesXLS = glob($tempSaveFolder . "*.{xls}", GLOB_BRACE);
+foreach($filesXLS as $file){
+	$basename = basename($file, ".xls");
+	$fileCSV = $tempSaveFolder . $basename . ".csv";
+	convertXLSToCSV($file, $fileCSV, $basename);
+}
 
 // On insère les fichiers au format .csv dans la base de données et on effectue les traitements adéquats
 insertionBDD($connexion, $fileSQL);
 
-// On retarde l'exécution de la suite du script pour s'assurer que les fichiers au format .csv ne seront pas supprimés avant d'avoir été insérés dans les tables correspondantes
-sleep(60);
-
 // On supprime l'ensemble des fichiers au format .xls et au format .csv
-deleteFile($saveTo_XLS_MAJOPE, $name_MAJOPE);
-deleteFile($saveTo_XLS_MAJNUM, $name_MAJNUM);
-deleteFile($saveTo_XLS_MAJPORTA, $name_MAJPORTA);
-deleteFile($saveTo_XLS_MAJSDT, $name_MAJSDT);
-deleteFile($saveTo_CSV_MAJOPE, $name_MAJOPE);
-deleteFile($saveTo_CSV_MAJNUM, $name_MAJNUM);
-deleteFile($saveTo_CSV_MAJPORTA, $name_MAJPORTA);
-deleteFile($saveTo_CSV_MAJSDT, $name_MAJSDT);
+$filesCSV = glob($tempSaveFolder . "*.{csv}", GLOB_BRACE);
+foreach($filesXLS as $file){
+	$basename = basename($file, ".xls");
+	deleteFile($file, $basename);
+}
+foreach($filesCSV as $file){
+	$basename = basename($file, ".csv");
+	deleteFile($file, $basename);
+}
 
 /** 
  * Téléchargement d'un fichier via son URL et enregistrement à un endroit précisé
@@ -77,8 +64,8 @@ function downloadFile($fileUrl, $saveTo, $name){
 
 	$fp = fopen($saveTo, 'w+'); // On créé un fichier en écriture
 
-	if($fp==false){ // Si le fichier ne peut pas être ouvert
-		throw new Exception("Ne peut pas ouvrir : " .$saveTo);
+	if($fp == false){ // Si le fichier ne peut pas être ouvert
+		throw new Exception("Ne peut pas ouvrir : " . $saveTo . nl2br("\n"));
 	}
 
 	$ch = curl_init($fileUrl); // On créé un gestionnaire cURL
@@ -97,10 +84,10 @@ function downloadFile($fileUrl, $saveTo, $name){
 
 	$end = microtime(true); // Fin du chronomètre
 
-	if($statusCode==200){
-		echo "Fichier : " .$name . " téléchargé en ".number_format($end-$start,2)." secondes.".nl2br("\n");
+	if($statusCode == 200){
+		echo "Fichier : " . $name . " téléchargé en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
 	} else {
-		echo "Statut : " . $statusCode. " ".nl2br("\n");
+		echo "Statut : " . $statusCode . " " . nl2br("\n");
 	}
 }
 
@@ -124,7 +111,7 @@ $writer->save($outfile); // On sauvegarde le fichier
 
 $end = microtime(true);
 
-echo "Conversion du fichier " .$name. " réussie en ".number_format($end-$start,2)." secondes.".nl2br("\n");
+echo "Conversion du fichier " . $name . " réussie en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
 }
 
 /**
@@ -133,14 +120,24 @@ echo "Conversion du fichier " .$name. " réussie en ".number_format($end-$start,
  * @param $myfile Le fichier au format .sql qui doit être inséré
  */
 function insertionBDD($connexion, $myfile){
-	$debut = microtime(true);
+	$start = microtime(true);
 
 	$sqlSource = file_get_contents($myfile);
-	mysqli_multi_query($connexion, $sqlSource) or die("Impossible d'exécuter le fichier SQL\n"); // On exécute le fichier au format .sql
+	mysqli_multi_query($connexion, $sqlSource) or die("Impossible d'exécuter le fichier SQL" . nl2br("\n")); // On exécute le fichier au format .sql
 	
-	$fin = microtime(true);
+	
+	// On attend que l'ensemble des requêtes SQL du script se soient exécutées
+	while(mysqli_next_result($connexion)){
 
-	echo "Insertion des fichiers dans la base de données réussie en ".number_format($end-$start,2)." secondes.".nl2br("\n");
+	}
+
+	if(mysqli_error($connexion)){
+		die(mysqli_error($connexion));
+	}
+	
+	$end = microtime(true);
+
+	echo "Insertion des fichiers dans la base de données réussie en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
 }
 
 /**
@@ -149,12 +146,12 @@ function insertionBDD($connexion, $myfile){
  * @param $name Le nom du fichier à supprimer
  */
 function deleteFile($myfile, $name){
-	$debut = microtime(true);
+	$start = microtime(true);
 
-unlink($myfile) or die("Impossible de supprimer le fichier " .$myfile."\n"); // On supprime le fichier
+unlink($myfile) or die("Impossible de supprimer le fichier " . $myfile . nl2br("\n")); // On supprime le fichier
 
-$fin = microtime(true);
-echo "Fichier " .$myfile. " supprimé en ".number_format($end-$start,2)." secondes.".nl2br("\n");	
+$end = microtime(true);
+echo "Fichier " . $myfile . " supprimé en " . number_format($end-$start,2) . " secondes." . nl2br("\n");	
 }
 
 ?>

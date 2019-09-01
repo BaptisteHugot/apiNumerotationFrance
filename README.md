@@ -19,7 +19,7 @@ Le projet contient également un fichier permettant d'automatiser le processus d
 * [CSS](https://www.w3.org/Style/CSS/) - Le langage de programmation utilisé pour gérer les styles de la page Internet
 
 ## Bibliothèques utilisées
-* [PHPSpreadsheet]() - La bibliothèque utilisée pour convertir les fichiers du format .xls au format .csv
+* [PHPSpreadsheet](https://phpspreadsheet.readthedocs.io/) - La bibliothèque utilisée pour convertir les fichiers du format .xls au format .csv
 
 ## Versions
 [SemVer](http://semver.org/) est utilisé pour la gestion de versions. Pour connaître les versions disponibles, veuillez vous référer aux [étiquettes disponibles dans ce dépôt](https://github.com/BaptisteHugot/apiNumerotationFrance/releases/).

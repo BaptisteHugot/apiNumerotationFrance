@@ -1,6 +1,8 @@
 -- @file db_traitements.sql
 -- @brief Effectue les traitements sur la base de donnée qui sera utilisée par l'API grâce aux fichiers disponibles en open data et convertis au format .csv
 
+-- Voir pour créer une variable globale contenant le chemin du dossier
+
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
@@ -9,8 +11,8 @@ SET time_zone = "+00:00";
 -- On créé les tables si elles n'existent pas déjà
 CREATE TABLE IF NOT EXISTS `MAJNUM`(
 `EZABPQM` varchar(10) COLLATE latin1_bin NOT NULL,
-`Tranche_Debut` varchar(10) COLLATE latin1_bin NOT NULL,
-`Tranche_Fin` varchar(10) COLLATE latin1_bin NOT NULL,
+`Tranche_Debut` varchar(14) COLLATE latin1_bin NOT NULL,
+`Tranche_Fin` varchar(14) COLLATE latin1_bin NOT NULL,
 `Mnémo` varchar(6) COLLATE latin1_bin NOT NULL,
 `Territoire` text COLLATE latin1_bin NOT NULL,
 `Date_Attribution` varchar(10) COLLATE latin1_bin NOT NULL
@@ -37,8 +39,8 @@ CREATE TABLE IF NOT EXISTS `MAJSDT`(
 
 CREATE TABLE IF NOT EXISTS `CONCATENATION`(
 `EZABPQM` varchar(10) COLLATE latin1_bin NOT NULL,
-`Tranche_Debut` varchar(10) COLLATE latin1_bin NOT NULL,
-`Tranche_Fin` varchar(10) COLLATE latin1_bin NOT NULL,
+`Tranche_Debut` varchar(14) COLLATE latin1_bin NOT NULL,
+`Tranche_Fin` varchar(14) COLLATE latin1_bin NOT NULL,
 `Code_Operateur` varchar(6) COLLATE latin1_bin NOT NULL,
 `Identite_Operateur` text COLLATE latin1_bin NOT NULL,
 `Territoire` text COLLATE latin1_bin NOT NULL,
@@ -61,7 +63,7 @@ DELETE FROM `CONCATENATION` WHERE 1;
 -- Attention : l'insertion de données nécessite un chemin complet et non un chemin relatif, modifier le chemin avant d'exécuter le script !
 
 -- On insère le fichier MAJOPE dans la table MAJOPE
-LOAD DATA INFILE "/Applications/AMPPS/www/apiNumerotation/temp/MAJOPE.csv"
+LOAD DATA INFILE "/CHEMIN/ABSOLU/VERS/LE/DOSSIER//temp/MAJOPE.csv"
 INTO TABLE MAJOPE
 CHARACTER SET UTF8
 FIELDS
@@ -69,11 +71,10 @@ FIELDS
 	ENCLOSED BY '"'
 LINES
 	TERMINATED BY '\n'
-IGNORE 1 LINES
-(CODE_OPERATEUR,IDENTITE_OPERATEUR);
+IGNORE 1 LINES;
 
 -- On insère le fichier MAJNUM dans la table MAJNUM
-LOAD DATA INFILE "/Applications/AMPPS/www/apiNumerotation/temp/MAJNUM.csv"
+LOAD DATA INFILE "/CHEMIN/ABSOLU/VERS/LE/DOSSIER/temp/MAJNUM.csv"
 INTO TABLE MAJNUM
 CHARACTER SET UTF8
 FIELDS
@@ -84,7 +85,7 @@ LINES
 IGNORE 1 LINES;
 
 -- On insère le fichier MAJPORTA dans la table MAJPORTA
-LOAD DATA INFILE "/Applications/AMPPS/www/apiNumerotation/temp/MAJPORTA.csv"
+LOAD DATA INFILE "/CHEMIN/ABSOLU/VERS/LE/DOSSIER/temp/MAJPORTA.csv"
 INTO TABLE MAJPORTA
 FIELDS
 	TERMINATED BY ';'
@@ -94,7 +95,7 @@ LINES
 IGNORE 1 LINES;
 
 -- On insère le fichier MAJSDT dans la table MAJSDT
-LOAD DATA INFILE "/Applications/AMPPS/www/apiNumerotation/temp/MAJSDT.csv"
+LOAD DATA INFILE "/CHEMIN/ABSOLU/VERS/LE/DOSSIER/temp/MAJSDT.csv"
 INTO TABLE MAJSDT
 FIELDS
 	TERMINATED BY ';'

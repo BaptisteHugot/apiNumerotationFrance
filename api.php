@@ -12,19 +12,24 @@ ini_set('display_errors',1);
 header("Content-Type:application/json");
 
 /* Recherche de l'attributaire d'une tranche ou d'un début de tranche */
-if(isset($_GET['TRANCHE']) && $_GET['TRANCHE']!=""){
-	$ezabpqm=$_GET['TRANCHE'];
+if(isset($_GET['TRANCHE']) && $_GET['TRANCHE'] != ""){
+	$ezabpqm = $_GET['TRANCHE'];
+	$ezabpqm = htmlspecialchars($ezabpqm, ENT_QUOTES, 'UTF-8'); // Pour éviter une injection XSS
 
 	$regEx = "#^((3[0|1|2|4|9][0-9]{0,2})|(1[0|6][0-9]{0,2})|(118[0-9]{0,3})|(0[1-9][0-9]{0,5}))$#"; // Expression régulière d'une tranche de numéros
 
-	if(preg_match($regEx,$ezabpqm)){ // Si la tranche entrée correspond à l'expression régulière
+	if(preg_match($regEx, $ezabpqm)){ // Si la tranche entrée correspond à l'expression régulière
 		include('db.php'); // On se connecte à la base de données
 
-	$query = "SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE EZABPQM LIKE '$ezabpqm%' ORDER BY EZABPQM"; // Requête SQL à exécuter
-	$result = mysqli_query($connexion,$query);
+	$ezabpqm = $connexion->real_escape_string($ezabpqm); // Pour éviter une injection SQL
+	$stmt = $connexion->prepare("SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE EZABPQM LIKE CONCAT(?,'%') ORDER BY EZABPQM"); // Requête SQL à exécuter
+	$stmt->bind_param("s", $ezabpqm); // On vérifie que le type de variable est correct
+	$stmt->execute();
+
+	$result = $stmt->get_result();
 
 	$jsonData = array();
-	if($result==false){ // On arrête le programme si l'exécution de la requête a rencontré un problème
+	if($result == false){ // On arrête le programme si l'exécution de la requête a rencontré un problème
 		throw new Exception(mysqli_error($connexion));
 		mysqli_free_result($result); // On libère la variable utilisée pour récupérer le résultat de la requête SQL
 		mysqli_close($connexion); // On ferme la connexion à la base de données
@@ -37,29 +42,37 @@ while($array = mysqli_fetch_assoc($result)){ // On stocke chaque ligne de la bas
 	mysqli_free_result($result); // On libère la variable utilisée pour récupérer le résultat de la requête SQL
 	mysqli_close($connexion); // On ferme la connexion à la base de données
 }else { // On retourne null si aucun élément n'est trouvé
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
+	mysqli_free_result($result); // On libère la variable utilisée pour récupérer le résultat de la requête SQL
+	mysqli_close($connexion); // On ferme la connexion à la base de données
 	}
 	}else { // On retourne null si le format entré ne correspond pas à l'expression régulière
-		$jsonData[]=null;
+		$jsonData[] = null;
 	echo json_encode($jsonData);
 	}
 }
 
 /* Recherche des numéros attribués à un opérateur donné (via son code Arcep) */
 if(isset($_GET['OPERATEUR']) && $_GET['OPERATEUR']!=""){
-	$operateur=strtoupper($_GET['OPERATEUR']); // On met en majuscule la valeur entrée par l'utilisateur
+	$operateur = $_GET['OPERATEUR'];
+	$operateur = htmlspecialchars($operateur, ENT_QUOTES, 'UTF-8');
+	$operateur = strtoupper($operateur); // On met en majuscule les données entrées
 
 	$regEx = "#^[A-Za-z0-9]{4,5}$#";
 
-	if(preg_match($regEx,$operateur)){
-			include('db.php');
+	if(preg_match($regEx, $operateur)){
+	include('db.php');
 
-	$query = "SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE Code_Operateur='$operateur' ORDER BY EZABPQM";
-	$result = mysqli_query($connexion,$query);
+	$operateur = $connexion->real_escape_string($operateur);
+	$stmt = $connexion->prepare("SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE Code_Operateur = ? ORDER BY Date_Attribution_MEF");
+	$stmt->bind_param("s", $operateur);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
 
 	$jsonData = array();
-	if($result==false){
+	if($result == false){
 		throw new Exception(mysqli_error($connexion));
 				mysqli_free_result($result);
 		mysqli_close($connexion);
@@ -71,35 +84,42 @@ if(isset($_GET['OPERATEUR']) && $_GET['OPERATEUR']!=""){
 		mysqli_free_result($result);
 		mysqli_close($connexion); 
 }else {
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
+			mysqli_free_result($result);
+		mysqli_close($connexion);
 }
 }else{
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);	
 }
 }
 
 /* Recherche des attributions après une date donnée */
-if(isset($_GET['DATESUP']) && $_GET['DATESUP']!=""){
-	$date=$_GET['DATESUP'];
+if(isset($_GET['DATESUP']) && $_GET['DATESUP'] != ""){
+	$date = $_GET['DATESUP'];
+	$date = htmlspecialchars($date, ENT_QUOTES, 'UTF-8');
 
 	$regEx = "#^[0-9]{8}$#";
 
-	if(preg_match($regEx,$date) && validateDate($date)){
-	$date_mef=substr($date,4,4)*10000+substr($date, 2, 2)*100+substr($date,0,2); // On met en forme la date entrée pour pouvoir requêter plus facilement
+	if(preg_match($regEx, $date) && validateDate($date)){
+	$date_mef = substr($date, 4, 4) * 10000 + substr($date, 2, 2) * 100 + substr($date, 0, 2); // On met en forme la date entrée pour pouvoir requêter plus facilement
 
 	include('db.php');
 
-	$query = "SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE CAST(Date_Attribution_MEF AS UNSIGNED)>='$date_mef' ORDER BY Date_Attribution_MEF";
-	$result = mysqli_query($connexion,$query);
+	$date_mef = $connexion->real_escape_string($date_mef);
+	$stmt = $connexion->prepare("SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE (CAST(Date_Attribution_MEF AS UNSIGNED) >= ?) ORDER BY Date_Attribution_MEF");
+	$stmt->bind_param("s", $date_mef);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
 
 	$jsonData = array();
-	if($result==false){
+	if($result == false){
 		throw new Exception(mysqli_error($connexion));
 				mysqli_free_result($result);
 		mysqli_close($connexion);
-	}else if(mysqli_num_rows($result)>0){
+	}else if(mysqli_num_rows($result) > 0){
 	while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
 	}
@@ -107,35 +127,42 @@ if(isset($_GET['DATESUP']) && $_GET['DATESUP']!=""){
 		mysqli_free_result($result);
 		mysqli_close($connexion); 
 }else {
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
+			mysqli_free_result($result);
+		mysqli_close($connexion); 
 }
 }else{
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
 }
 }
 
 /* Recherche des attributions avant une date donnée */
-if(isset($_GET['DATEINF']) && $_GET['DATEINF']!=""){
-	$date=$_GET['DATEINF'];
+if(isset($_GET['DATEINF']) && $_GET['DATEINF'] != ""){
+	$date = $_GET['DATEINF'];
+	$date = htmlspecialchars($date, ENT_QUOTES, 'UTF-8');
 
 	$regEx = "#^[0-9]{8}$#";
 
-		if(preg_match($regEx,$date) && validateDate($date)){
-	$date_mef=substr($date,4,4)*10000+substr($date, 2, 2)*100+substr($date,0,2);
+		if(preg_match($regEx, $date) && validateDate($date)){
+	$date_mef = substr($date, 4, 4) * 10000 + substr($date, 2, 2) * 100 + substr($date, 0, 2);
 
 	include('db.php');
 
-	$query = "SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE CAST(Date_Attribution_MEF AS UNSIGNED)<='$date_mef' ORDER BY Date_Attribution_MEF";
-	$result = mysqli_query($connexion,$query);
+	$date_mef = $connexion->real_escape_string($date_mef);
+	$stmt = $connexion->prepare("SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE (CAST(Date_Attribution_MEF AS UNSIGNED) <= ?) ORDER BY Date_Attribution_MEF");
+	$stmt->bind_param("s", $date_mef);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
 
 	$jsonData = array();
-	if($result==false){
+	if($result == false){
 		throw new Exception(mysqli_error($connexion));
 				mysqli_free_result($result);
 		mysqli_close($connexion);
-	}else if(mysqli_num_rows($result)>0){
+	}else if(mysqli_num_rows($result) > 0){
 	while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
 	}
@@ -143,37 +170,46 @@ if(isset($_GET['DATEINF']) && $_GET['DATEINF']!=""){
 		mysqli_free_result($result);
 		mysqli_close($connexion); 
 }else {
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
+			mysqli_free_result($result);
+		mysqli_close($connexion); 
 }
 }else{
-$jsonData[]=null;
+$jsonData[] = null;
 	echo json_encode($jsonData);	
 }
 }
 
 /* Recherche des attributions entre deux dates données */
-if(isset($_GET['DATEENTREINF']) && $_GET['DATEENTREINF']!="" &&isset($_GET['DATEENTRESUP']) && $_GET['DATEENTRESUP']!=""){
-	$dateInf=$_GET['DATEENTREINF'];
-	$dateSup=$_GET['DATEENTRESUP'];
+if(isset($_GET['DATEENTREINF']) && $_GET['DATEENTREINF'] != "" && isset($_GET['DATEENTRESUP']) && $_GET['DATEENTRESUP'] != ""){
+	$dateInf = $_GET['DATEENTREINF'];
+	$dateSup = $_GET['DATEENTRESUP'];
+	$dateInf = htmlspecialchars($dateInf, ENT_QUOTES, 'UTF-8');
+	$dateSup = htmlspecialchars($dateSup, ENT_QUOTES, 'UTF-8');
 
 	$regEx = "#^[0-9]{8}$#";
 
-if(preg_match($regEx,$dateInf) && preg_match($regEx,$dateSup) && validateDate($dateInf) && validateDate($dateSup)){
-	$date_inf=substr($dateInf,4,4)*10000+substr($dateInf, 2, 2)*100+substr($dateInf,0,2);
-	$date_sup=substr($dateSup,4,4)*10000+substr($dateSup, 2, 2)*100+substr($dateSup,0,2);
+if(preg_match($regEx, $dateInf) && preg_match($regEx, $dateSup) && validateDate($dateInf) && validateDate($dateSup)){
+	$date_inf = substr($dateInf, 4, 4) * 10000 + substr($dateInf, 2, 2) * 100 + substr($dateInf, 0, 2);
+	$date_sup = substr($dateSup, 4, 4) * 10000 + substr($dateSup, 2, 2) * 100 + substr($dateSup, 0, 2);
 
 	include('db.php');
 
-	$query = "SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE (CAST(Date_Attribution_MEF AS UNSIGNED)<='$date_sup' AND CAST(Date_Attribution_MEF AS UNSIGNED)>='$date_inf') ORDER BY Date_Attribution_MEF";
-	$result = mysqli_query($connexion,$query);
+	$date_inf = $connexion->real_escape_string($date_inf);
+	$date_sup = $connexion->real_escape_string($date_sup);
+	$stmt = $connexion->prepare("SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE (CAST(Date_Attribution_MEF AS UNSIGNED) >= ?) AND (CAST(Date_Attribution_MEF AS UNSIGNED) <= ?) ORDER BY Date_Attribution_MEF");
+	$stmt->bind_param("ss", $date_inf, $date_sup);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
 
 	$jsonData = array();
-	if($result==false){
+	if($result == false){
 		throw new Exception(mysqli_error($connexion));
 				mysqli_free_result($result);
 		mysqli_close($connexion);
-	}else if(mysqli_num_rows($result)>0){
+	}else if(mysqli_num_rows($result) > 0){
 	while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
 	}
@@ -181,29 +217,36 @@ if(preg_match($regEx,$dateInf) && preg_match($regEx,$dateSup) && validateDate($d
 		mysqli_free_result($result);
 		mysqli_close($connexion); 
 }else {
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
+			mysqli_free_result($result);
+		mysqli_close($connexion); 
 }
 }else{
-$jsonData[]=null;
+$jsonData[] = null;
 	echo json_encode($jsonData);	
 }
 }
 
 /* Recherche de l'attributaire d'un numéro */
-if(isset($_GET['NUMERO']) && $_GET['NUMERO']!=""){
-	$numero=$_GET['NUMERO'];
+if(isset($_GET['NUMERO']) && $_GET['NUMERO'] != ""){
+	$numero = $_GET['NUMERO'];
+	$numero = htmlspecialchars($numero, ENT_QUOTES, 'UTF-8');
 
 	$regEx = "#^((3[0|1|2|4|9][0-9]{2})|(1[0|6][0-9]{2})|(118[0-9]{3})|(0[1-9][0-9]{8}))$#";
 
-	if(preg_match($regEx,$numero)){
+	if(preg_match($regEx, $numero)){
 			include('db.php');
 
-	$query = "SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE '$numero' BETWEEN CAST(Tranche_Debut AS UNSIGNED) AND CAST(Tranche_Fin AS UNSIGNED) ORDER BY EZABPQM";
-	$result = mysqli_query($connexion,$query);
+	$numero = $connexion->real_escape_string($numero);
+	$stmt = $connexion->prepare("SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE ? BETWEEN CAST(Tranche_Debut AS UNSIGNED) AND CAST(Tranche_Fin AS UNSIGNED) ORDER BY EZABPQM");
+	$stmt->bind_param("s", $numero);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
 
 	$jsonData = array();
-	if($result==false){
+	if($result == false){
 		throw new Exception(mysqli_error($connexion));
 				mysqli_free_result($result);
 		mysqli_close($connexion);
@@ -216,29 +259,36 @@ while($array = mysqli_fetch_assoc($result)){
 	mysqli_free_result($result);
 	mysqli_close($connexion); 
 }else {
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
+			mysqli_free_result($result);
+		mysqli_close($connexion); 
 	}
 	}else {
-		$jsonData[]=null;
+		$jsonData[] = null;
 	echo json_encode($jsonData);
 	}
 }
 
 /* Recherche des données d'un fichier */
-if(isset($_GET['FICHIER']) && $_GET['FICHIER']!=""){
-	$fichier=$_GET['FICHIER'];
+if(isset($_GET['FICHIER']) && $_GET['FICHIER'] != ""){
+	$fichier = $_GET['FICHIER'];
+	$fichier = htmlspecialchars($fichier, ENT_QUOTES, 'UTF-8');
 
 	$regEx = "#^(MAJPORTA|MAJNUM|MAJSDT)$#";
 
-	if(preg_match($regEx,$fichier)){
+	if(preg_match($regEx, $fichier)){
 			include('db.php');
 
-	$query = "SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE '$fichier'=Fichier_Arcep ORDER BY EZABPQM";
-	$result = mysqli_query($connexion,$query);
+	$fichier = $connexion->real_escape_string($fichier);
+	$stmt = $connexion->prepare("SELECT EZABPQM, Tranche_Debut, Tranche_Fin, Code_Operateur, Identite_Operateur, Territoire, Date_Attribution, Fichier_Arcep FROM CONCATENATION WHERE  ? = Fichier_Arcep ORDER BY EZABPQM");
+	$stmt->bind_param("s", $fichier);
+	$stmt->execute();
+
+	$result = $stmt->get_result();
 
 	$jsonData = array();
-	if($result==false){
+	if($result == false){
 		throw new Exception(mysqli_error($connexion));
 				mysqli_free_result($result);
 		mysqli_close($connexion);
@@ -251,11 +301,13 @@ while($array = mysqli_fetch_assoc($result)){
 	mysqli_free_result($result);
 	mysqli_close($connexion); 
 }else {
-	$jsonData[]=null;
+	$jsonData[] = null;
 	echo json_encode($jsonData);
+		mysqli_free_result($result);
+		mysqli_close($connexion); 
 	}
 	}else {
-		$jsonData[]=null;
+		$jsonData[] = null;
 	echo json_encode($jsonData);
 	}
 }
