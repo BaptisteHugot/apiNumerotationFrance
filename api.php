@@ -5,8 +5,8 @@
  */
 
 /* Code utilisé uniquement pour le débug, à supprimer en production */
-error_reporting(E_ALL);
-ini_set('display_errors',1);
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
 /* Fin du code utilisé uniquement pour le débug, à supprimer en production */
 
 header("Content-Type:application/json");
@@ -30,9 +30,9 @@ if(isset($_GET['TRANCHE']) && $_GET['TRANCHE'] != ""){
 
 	$jsonData = array();
 	if($result == false){ // On arrête le programme si l'exécution de la requête a rencontré un problème
-		throw new Exception(mysqli_error($connexion));
 		mysqli_free_result($result); // On libère la variable utilisée pour récupérer le résultat de la requête SQL
 		mysqli_close($connexion); // On ferme la connexion à la base de données
+		throw new Exception(mysqli_error($connexion));
 	}else if(mysqli_num_rows($result) > 0){ // Si au moins un élément est trouvé
 while($array = mysqli_fetch_assoc($result)){ // On stocke chaque ligne de la base de données dans une ligne d'un tableau PHP
 		$jsonData[] = $array;
@@ -73,9 +73,9 @@ if(isset($_GET['OPERATEUR']) && $_GET['OPERATEUR']!=""){
 
 	$jsonData = array();
 	if($result == false){
-		throw new Exception(mysqli_error($connexion));
-				mysqli_free_result($result);
+		mysqli_free_result($result);
 		mysqli_close($connexion);
+		throw new Exception(mysqli_error($connexion));
 	}else if(mysqli_num_rows($result) > 0){
 	while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
@@ -116,9 +116,9 @@ if(isset($_GET['DATESUP']) && $_GET['DATESUP'] != ""){
 
 	$jsonData = array();
 	if($result == false){
-		throw new Exception(mysqli_error($connexion));
-				mysqli_free_result($result);
+		mysqli_free_result($result);
 		mysqli_close($connexion);
+		throw new Exception(mysqli_error($connexion));
 	}else if(mysqli_num_rows($result) > 0){
 	while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
@@ -159,9 +159,9 @@ if(isset($_GET['DATEINF']) && $_GET['DATEINF'] != ""){
 
 	$jsonData = array();
 	if($result == false){
-		throw new Exception(mysqli_error($connexion));
-				mysqli_free_result($result);
+		mysqli_free_result($result);
 		mysqli_close($connexion);
+		throw new Exception(mysqli_error($connexion));
 	}else if(mysqli_num_rows($result) > 0){
 	while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
@@ -206,9 +206,9 @@ if(preg_match($regEx, $dateInf) && preg_match($regEx, $dateSup) && validateDate(
 
 	$jsonData = array();
 	if($result == false){
-		throw new Exception(mysqli_error($connexion));
-				mysqli_free_result($result);
+		mysqli_free_result($result);
 		mysqli_close($connexion);
+		throw new Exception(mysqli_error($connexion));
 	}else if(mysqli_num_rows($result) > 0){
 	while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
@@ -247,9 +247,9 @@ if(isset($_GET['NUMERO']) && $_GET['NUMERO'] != ""){
 
 	$jsonData = array();
 	if($result == false){
-		throw new Exception(mysqli_error($connexion));
-				mysqli_free_result($result);
+		mysqli_free_result($result);
 		mysqli_close($connexion);
+		throw new Exception(mysqli_error($connexion));
 	}else if(mysqli_num_rows($result) > 0){
 while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
@@ -275,7 +275,7 @@ if(isset($_GET['FICHIER']) && $_GET['FICHIER'] != ""){
 	$fichier = $_GET['FICHIER'];
 	$fichier = htmlspecialchars($fichier, ENT_QUOTES, 'UTF-8');
 
-	$regEx = "#^(MAJPORTA|MAJNUM|MAJSDT)$#";
+	$regEx = "#^MAJ(PORTA|NUM|SDT)$#";
 
 	if(preg_match($regEx, $fichier)){
 			include('db.php');
@@ -289,9 +289,9 @@ if(isset($_GET['FICHIER']) && $_GET['FICHIER'] != ""){
 
 	$jsonData = array();
 	if($result == false){
-		throw new Exception(mysqli_error($connexion));
-				mysqli_free_result($result);
+		mysqli_free_result($result);
 		mysqli_close($connexion);
+		throw new Exception(mysqli_error($connexion));
 	}else if(mysqli_num_rows($result) > 0){
 while($array = mysqli_fetch_assoc($result)){
 		$jsonData[] = $array;
@@ -320,7 +320,8 @@ while($array = mysqli_fetch_assoc($result)){
  */
 function validateDate($date, $format="dmY"){
 	$d = DateTime::createFromFormat($format, $date);
-	$now = (new DateTime('now'))->format($format);
+	$now = (new DateTime('now'));
+
 	return $d && ($d->format($format) === $date) && ($d->format($format) <= $now);
 }
 ?>

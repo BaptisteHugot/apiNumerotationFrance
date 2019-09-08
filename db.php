@@ -1,14 +1,17 @@
 <?php
 /**
- * Fichier de configuration de la base de données
+ * @file db.php
+ * @brief Connexion à la base de donnée
  */
 
-$host = "";
-$username = "";
-$password = "";
-$database = "";
+/* Code utilisé uniquement pour le débug, à supprimer en production */
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
+/* Fin du code utilisé uniquement pour le débug, à supprimer en production */
 
-$connexion = mysqli_connect($host,$username,$password,$database);
+$config = parse_ini_file("./db.ini");
+
+$connexion = mysqli_connect($config["host"],$config["username"],$config["password"],$config["database"]);
 
 if(mysqli_connect_errno()){
 	echo "Impossible de se connecter à MySQL : " . mysqli_connect_error();

@@ -4,6 +4,11 @@
  * @brief Fichier effectuant les traitements sur les fichiers disponibles en open data au format xls pour les inclure dans une table MySQL commune
  */
 
+/* Code utilisé uniquement pour le débug, à supprimer en production */
+//error_reporting(E_ALL);
+//ini_set('display_errors',1);
+/* Fin du code utilisé uniquement pour le débug, à supprimer en production */
+
 // On définit l'ensemble des dépendances
 require_once('phpoffice_phpspreadsheet/vendor/autoload.php');
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
