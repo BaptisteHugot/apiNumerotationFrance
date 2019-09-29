@@ -23,6 +23,13 @@ Le projet contient également un fichier permettant d'automatiser le processus d
 ## Bibliothèques utilisées
 * [PHPSpreadsheet](https://phpspreadsheet.readthedocs.io/) - La bibliothèque utilisée pour convertir les fichiers du format .xls au format .csv
 * [jQuery](https://jquery.com/) - La bibliothèque utilisée pour gérer une partie des styles de la page d'exemple
+* [Chart.js](https://www.chartjs.org/) - La bibliothèque utilisée pour afficher des graphiques
+
+## Exemples
+Le projet contient 3 exemples d'utilisation distincts :
+* Un permettant de rechercher différentes informations via l'API grâce à cURL
+* Un permettant de rechercher différentes informations via la base de données
+* Un affichant différents graphiques grâce à des informations récupérées via la base de données
 
 ## Versions
 [SemVer](http://semver.org/) est utilisé pour la gestion de versions. Pour connaître les versions disponibles, veuillez vous référer aux [étiquettes disponibles dans ce dépôt](https://github.com/BaptisteHugot/apiNumerotationFrance/releases/).

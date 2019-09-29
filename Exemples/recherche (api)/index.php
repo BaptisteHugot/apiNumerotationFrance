@@ -6,8 +6,8 @@
  */
 
 /* Code utilisé uniquement pour le débug, à supprimer en production */
-//error_reporting(E_ALL);
-//ini_set('display_errors',1);
+error_reporting(E_ALL);
+ini_set('display_errors',1);
 /* Fin du code utilisé uniquement pour le débug, à supprimer en production */
 
 ?>
@@ -116,6 +116,9 @@ $url = $url . "?OPERATEUR=" . $data;
 
 	$result = json_decode($response);
 
+if($result[0] == null){
+	echo "Votre recherche n'a retourné aucune donnée";
+	}else{
 	$i = 0;
 		echo "<table>";
 		echo "<tr><td>EZABPQM</td><td>Tranche_Debut</td><td>Tranche_Fin</td><td>Code_Operateur</td><td>Identite_Operateur</td><td>Territoire</td><td>Date_Attribution</td><td>Fichier_Arcep</td></tr>";
@@ -133,6 +136,7 @@ $url = $url . "?OPERATEUR=" . $data;
 			$i++;
 		}
 		echo "</table>";
+	}
 				curl_close($client);
 			}
 }else if($radioValue == "numero"){
