@@ -1,12 +1,12 @@
 <?php
 /**
- * @file db.php
- * @brief Connexion à la base de donnée
- */
+* @file db.php
+* @brief Connexion à la base de donnée
+*/
 
 /* Code utilisé uniquement pour le débug, à supprimer en production */
-//error_reporting(E_ALL);
-//ini_set('display_errors',1);
+error_reporting(E_ALL);
+ini_set('display_errors',1);
 /* Fin du code utilisé uniquement pour le débug, à supprimer en production */
 
 $config = parse_ini_file("./db.ini");

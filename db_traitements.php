@@ -1,12 +1,12 @@
 <?php
 /**
- * @file db_traitements.php
- * @brief Fichier effectuant les traitements sur les fichiers disponibles en open data au format xls pour les inclure dans une table MySQL commune
- */
+* @file db_traitements.php
+* @brief Fichier effectuant les traitements sur les fichiers disponibles en open data au format xls pour les inclure dans une table MySQL commune
+*/
 
 /* Code utilisé uniquement pour le débug, à supprimer en production */
-//error_reporting(E_ALL);
-//ini_set('display_errors',1);
+error_reporting(E_ALL);
+ini_set('display_errors',1);
 /* Fin du code utilisé uniquement pour le débug, à supprimer en production */
 
 // On définit l'ensemble des dépendances
@@ -58,12 +58,12 @@ foreach($filesCSV as $file){
 	deleteFile($file, $basename);
 }
 
-/** 
- * Téléchargement d'un fichier via son URL et enregistrement à un endroit précisé
- * @param $fileUrl L'URL du fichier à télécharger
- * @param $saveTo L'endrot où le fichier sera sauvegardé
- * @param $name Le nom du fichier sauvegardé
- */
+/**
+* Téléchargement d'un fichier via son URL et enregistrement à un endroit précisé
+* @param $fileUrl L'URL du fichier à télécharger
+* @param $saveTo L'endrot où le fichier sera sauvegardé
+* @param $name Le nom du fichier sauvegardé
+*/
 function downloadFile($fileUrl, $saveTo, $name){
 	$start = microtime(true); // Début du chronomètre
 
@@ -97,40 +97,40 @@ function downloadFile($fileUrl, $saveTo, $name){
 }
 
 /**
- * Conversion d'un fichier au format .xls vers un fichier au format .csv 
- * @param $infile Le fichier d'entrée au format .xls
- * @param $outfile Le fichier de sortie au format .csv
- * @param $name Le nom du fichier (le fichier généré aura le même nom que le fichier d'entrée)
- */
+* Conversion d'un fichier au format .xls vers un fichier au format .csv
+* @param $infile Le fichier d'entrée au format .xls
+* @param $outfile Le fichier de sortie au format .csv
+* @param $name Le nom du fichier (le fichier généré aura le même nom que le fichier d'entrée)
+*/
 function convertXLSToCSV($infile, $outfile, $name){
-$start = microtime(true);
+	$start = microtime(true);
 
-$fileType = IOFactory::identify($infile); // On identifie le type de fichier
-$reader = IOFactory::createReader($fileType); // On crée le tampon de lecture
-$spreadsheet = $reader->load($infile); // On met le fichier d'entrée dans le tampon
+	$fileType = IOFactory::identify($infile); // On identifie le type de fichier
+	$reader = IOFactory::createReader($fileType); // On crée le tampon de lecture
+	$spreadsheet = $reader->load($infile); // On met le fichier d'entrée dans le tampon
 
-$writer = IOFactory::createWriter($spreadsheet, "Csv"); // On crée le tampon d'écriture
-$writer->setSheetIndex(0); // On définit la feuille où écrire
-$writer->setDelimiter(";"); // On définit le délimiteur
-$writer->save($outfile); // On sauvegarde le fichier
+	$writer = IOFactory::createWriter($spreadsheet, "Csv"); // On crée le tampon d'écriture
+	$writer->setSheetIndex(0); // On définit la feuille où écrire
+	$writer->setDelimiter(";"); // On définit le délimiteur
+	$writer->save($outfile); // On sauvegarde le fichier
 
-$end = microtime(true);
+	$end = microtime(true);
 
-echo "Conversion du fichier " . $name . " réussie en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
+	echo "Conversion du fichier " . $name . " réussie en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
 }
 
 /**
- * Insertion d'un fichier .sql dans la base de données
- * @param $connexion La connexion à la base de données
- * @param $myfile Le fichier au format .sql qui doit être inséré
- */
+* Insertion d'un fichier .sql dans la base de données
+* @param $connexion La connexion à la base de données
+* @param $myfile Le fichier au format .sql qui doit être inséré
+*/
 function insertionBDD($connexion, $myfile){
 	$start = microtime(true);
 
 	$sqlSource = file_get_contents($myfile);
 	mysqli_multi_query($connexion, $sqlSource) or die("Impossible d'exécuter le fichier SQL" . nl2br("\n")); // On exécute le fichier au format .sql
-	
-	
+
+
 	// On attend que l'ensemble des requêtes SQL du script se soient exécutées
 	while(mysqli_next_result($connexion)){
 
@@ -139,24 +139,24 @@ function insertionBDD($connexion, $myfile){
 	if(mysqli_error($connexion)){
 		die(mysqli_error($connexion));
 	}
-	
+
 	$end = microtime(true);
 
 	echo "Insertion des fichiers dans la base de données réussie en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
 }
 
 /**
- * Suppression d'un fichier donné
- * @param $myfile Le fichier à supprimer
- * @param $name Le nom du fichier à supprimer
- */
+* Suppression d'un fichier donné
+* @param $myfile Le fichier à supprimer
+* @param $name Le nom du fichier à supprimer
+*/
 function deleteFile($myfile, $name){
 	$start = microtime(true);
 
-unlink($myfile) or die("Impossible de supprimer le fichier " . $myfile . nl2br("\n")); // On supprime le fichier
+	unlink($myfile) or die("Impossible de supprimer le fichier " . $myfile . nl2br("\n")); // On supprime le fichier
 
-$end = microtime(true);
-echo "Fichier " . $myfile . " supprimé en " . number_format($end-$start,2) . " secondes." . nl2br("\n");	
+	$end = microtime(true);
+	echo "Fichier " . $myfile . " supprimé en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
 }
 
 ?>

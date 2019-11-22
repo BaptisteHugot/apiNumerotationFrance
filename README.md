@@ -29,7 +29,9 @@ Le projet contient également un fichier permettant d'automatiser le processus d
 Le projet contient 3 exemples d'utilisation distincts :
 * Un permettant de rechercher différentes informations via l'API grâce à cURL
 * Un permettant de rechercher différentes informations via la base de données
-* Un affichant différents graphiques grâce à des informations récupérées via la base de données
+* Un affichant différents graphiques grâce à des informations récupérées via la base de données, dont vous trouverez quelques graphiques au format .png ci-dessous :
+
+<img src="https://user-images.githubusercontent.com/19981614/69440172-9a8d9d80-0d48-11ea-8332-1750b4c0819c.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/19981614/69440177-9b263400-0d48-11ea-91b7-6b6e7a86d2a6.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/19981614/69440173-9a8d9d80-0d48-11ea-9c5f-8a3234522053.png" width="23%"></img> <img src="https://user-images.githubusercontent.com/19981614/69440175-9a8d9d80-0d48-11ea-97fc-24446f01a35e.png" width="23%"></img> 
 
 ## Versions
 [SemVer](http://semver.org/) est utilisé pour la gestion de versions. Pour connaître les versions disponibles, veuillez vous référer aux [étiquettes disponibles dans ce dépôt](https://github.com/BaptisteHugot/apiNumerotationFrance/releases/).
