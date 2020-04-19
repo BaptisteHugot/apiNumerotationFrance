@@ -9,53 +9,58 @@ error_reporting(E_ALL);
 ini_set('display_errors',1);
 /* Fin du code utilisé uniquement pour le débug, à supprimer en production */
 
-// On définit l'ensemble des dépendances
-require_once('phpoffice_phpspreadsheet/vendor/autoload.php');
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-include ('db.php');
+/**
+* Fonction principale du programme
+*/
+function dbTraitements(){
+	// On définit l'ensemble des dépendances
+	require_once('phpoffice_phpspreadsheet/vendor/autoload.php');
+	use PhpOffice\PhpSpreadsheet\Spreadsheet;
+	use PhpOffice\PhpSpreadsheet\IOFactory;
+	include ('db.php');
 
-// On définit l'ensemble des variables
-// Les URL de téléchargement des fichiers en open data
-$urlArray = array(); // On crée un tableau vide où l'on stocke chaque URL contenant un fichier à télécharger
-$urlArray["MAJOPE"] = "https://www.data.gouv.fr/fr/datasets/r/19630568-4b05-4192-a989-9040a4383520";
-$urlArray["MAJPORTA"] = "https://www.data.gouv.fr/fr/datasets/r/e22d0c7f-24a9-4dae-81c3-56932889025f";
-$urlArray["MAJNUM"] = "https://www.data.gouv.fr/fr/datasets/r/90e8bdd0-0f5c-47ac-bd39-5f46463eb806";
-$urlArray["MAJSDT"] = "https://www.data.gouv.fr/fr/datasets/r/e516ccc4-70a8-46b6-b31f-6004e042f196";
+	// On définit l'ensemble des variables
+	// Les URL de téléchargement des fichiers en open data
+	$urlArray = array(); // On crée un tableau vide où l'on stocke chaque URL contenant un fichier à télécharger
+	$urlArray["MAJOPE"] = "https://www.data.gouv.fr/fr/datasets/r/19630568-4b05-4192-a989-9040a4383520";
+	$urlArray["MAJPORTA"] = "https://www.data.gouv.fr/fr/datasets/r/e22d0c7f-24a9-4dae-81c3-56932889025f";
+	$urlArray["MAJNUM"] = "https://www.data.gouv.fr/fr/datasets/r/90e8bdd0-0f5c-47ac-bd39-5f46463eb806";
+	$urlArray["MAJSDT"] = "https://www.data.gouv.fr/fr/datasets/r/e516ccc4-70a8-46b6-b31f-6004e042f196";
 
-$tempSaveFolder = "./temp/"; // Dossier où seront mis les fichiers temporaires
-$fileSQL = "./db_traitements.sql"; // Le chemin relatif où se situe le script sql à exécuter
+	$tempSaveFolder = "./temp/"; // Dossier où seront mis les fichiers temporaires
+	$fileSQL = "./db_traitements.sql"; // Le chemin relatif où se situe le script sql à exécuter
 
-// On crée le dossier /temp/ si celui-ci n'existe pas déjà
-if(!file_exists($tempSaveFolder)){
-	mkdir($tempSaveFolder, 0777, true);
-}
+	// On crée le dossier /temp/ si celui-ci n'existe pas déjà
+	if(!file_exists($tempSaveFolder)){
+		mkdir($tempSaveFolder, 0777, true);
+	}
 
-// On télécharge l'ensemble des fichiers au format .xls disponibles en open data
-foreach($urlArray as $key=>$value){
-	downloadFile($value, $tempSaveFolder . $key . ".xls", $key);
-}
+	// On télécharge l'ensemble des fichiers au format .xls disponibles en open data
+	foreach($urlArray as $key=>$value){
+		downloadFile($value, $tempSaveFolder . $key . ".xls", $key);
+	}
 
-// On convertit l'ensemble des fichiers du format .xls au format .csv
-$filesXLS = glob($tempSaveFolder . "*.{xls}", GLOB_BRACE);
-foreach($filesXLS as $file){
-	$basename = basename($file, ".xls");
-	$fileCSV = $tempSaveFolder . $basename . ".csv";
-	convertXLSToCSV($file, $fileCSV, $basename);
-}
+	// On convertit l'ensemble des fichiers du format .xls au format .csv
+	$filesXLS = glob($tempSaveFolder . "*.{xls}", GLOB_BRACE);
+	foreach($filesXLS as $file){
+		$basename = basename($file, ".xls");
+		$fileCSV = $tempSaveFolder . $basename . ".csv";
+		convertXLSToCSV($file, $fileCSV, $basename);
+	}
 
-// On insère les fichiers au format .csv dans la base de données et on effectue les traitements adéquats
-insertionBDD($connexion, $fileSQL);
+	// On insère les fichiers au format .csv dans la base de données et on effectue les traitements adéquats
+	insertionBDD($connexion, $fileSQL);
 
-// On supprime l'ensemble des fichiers au format .xls et au format .csv
-$filesCSV = glob($tempSaveFolder . "*.{csv}", GLOB_BRACE);
-foreach($filesXLS as $file){
-	$basename = basename($file, ".xls");
-	deleteFile($file, $basename);
-}
-foreach($filesCSV as $file){
-	$basename = basename($file, ".csv");
-	deleteFile($file, $basename);
+	// On supprime l'ensemble des fichiers au format .xls et au format .csv
+	$filesCSV = glob($tempSaveFolder . "*.{csv}", GLOB_BRACE);
+	foreach($filesXLS as $file){
+		$basename = basename($file, ".xls");
+		//deleteFile($file, $basename);
+	}
+	foreach($filesCSV as $file){
+		$basename = basename($file, ".csv");
+		deleteFile($file, $basename);
+	}
 }
 
 /**
@@ -158,5 +163,7 @@ function deleteFile($myfile, $name){
 	$end = microtime(true);
 	echo "Fichier " . $myfile . " supprimé en " . number_format($end-$start,2) . " secondes." . nl2br("\n");
 }
+
+dbTraitements();
 
 ?>
